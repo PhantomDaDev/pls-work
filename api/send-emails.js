@@ -1,10 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const { Resend } = require('resend');
+import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY); // Set your Resend API Key in .env
+const resend = new Resend(process.env.RESEND_API_KEY); // Set in Vercel Dashboard
 
-router.post('/send-emails', async (req, res) => {
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
   const {
     name,
     email,
@@ -15,7 +17,6 @@ router.post('/send-emails', async (req, res) => {
     teacher_name
   } = req.body;
 
-  // Determine who the recipient is
   let personToMeet = who_to_meet;
   if (who_to_meet === 'Teacher' && teacher_name) {
     personToMeet = `Teacher: ${teacher_name}`;
@@ -33,17 +34,16 @@ ${message}
 
   try {
     const data = await resend.emails.send({
-      from: 'appointments@your-domain.com', // Must be a verified domain in Resend
+      from: 'appointments@your-domain.com', // Must be verified in Resend
       to: 'school-admin@example.com',
       subject: `New Appointment Request - ${name}`,
       text: emailBody
     });
 
-    res.status(200).json({ message: 'Email sent successfully', data });
+    return res.status(200).json({ message: 'Email sent successfully', data });
   } catch (error) {
     console.error('Email sending failed:', error);
-    res.status(500).json({ error: 'Failed to send email', details: error.message });
+    return res.status(500).json({ error: 'Failed to send email', details: error.message });
   }
-});
+}
 
-module.exports = router;
