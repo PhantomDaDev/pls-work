@@ -8,14 +8,16 @@
         body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; }
-        input, select, button { width: 100%; padding: 8px; margin-bottom: 10px; }
+        input, select, button { width: 100%; padding: 8px; margin-bottom: 10px; box-sizing: border-box; }
         #teacherField { display: none; }
-        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; padding: 12px; }
         button:hover { background-color: #45a049; }
+        .error { color: red; display: none; }
     </style>
 </head>
 <body>
     <h2>School Appointment Request</h2>
+    <div id="errorMessage" class="error"></div>
     <form id="appointmentForm">
         <div class="form-group">
             <label for="name">Full Name:</label>
@@ -34,7 +36,7 @@
 
         <div class="form-group">
             <label for="appointmentWith">Request Appointment With:</label>
-            <select id="appointmentWith" required onchange="toggleTeacherField()">
+            <select id="appointmentWith" required>
                 <option value="">Select Staff Member</option>
                 <option value="Principal">Principal</option>
                 <option value="Vice Principal">Vice Principal</option>
@@ -61,33 +63,41 @@
         <button type="submit">Submit Request</button>
     </form>
 
-  
     <script type="module">
-        import { Resend } from 'https://unpkg.com/@resend/browser@latest/dist/browser.mjs';
-        const resend = new Resend('re_76APHfKT_CPDRh5gikpQYxs1PWVeDq7L8'); // Replace with your Resend API key
+        import { Resend } from 'https://cdn.jsdelivr.net/npm/@resend/browser@latest/dist/browser.mjs';
 
-        function toggleTeacherField() {
-            const appointmentWith = document.getElementById('appointmentWith').value;
-            const teacherField = document.getElementById('teacherField');
-            teacherField.style.display = appointmentWith === 'Teacher' ? 'block' : 'none';
-            if (appointmentWith !== 'Teacher') document.getElementById('teacherName').value = '';
+        // Force HTTPS
+        if (window.location.protocol !== 'https:') {
+            window.location.replace(`https://${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}${window.location.pathname}`);
         }
 
+        const resend = new Resend('re_123456789'); // Replace with your Resend API key
+
+        // Teacher field toggle
+        document.getElementById('appointmentWith').addEventListener('change', (e) => {
+            const teacherField = document.getElementById('teacherField');
+            teacherField.style.display = e.target.value === 'Teacher' ? 'block' : 'none';
+            if (e.target.value !== 'Teacher') document.getElementById('teacherName').value = '';
+        });
+
+        // Form submission
         document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const errorMessage = document.getElementById('errorMessage');
+            errorMessage.style.display = 'none';
 
             const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
+                name: document.getElementById('name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
                 appointmentWith: document.getElementById('appointmentWith').value,
-                teacherName: document.getElementById('teacherName').value,
+                teacherName: document.getElementById('teacherName').value.trim(),
                 date: document.getElementById('date').value
             };
 
             try {
                 const { data, error } = await resend.emails.send({
-                    from: 'School Appointment Form <onboarding@resend.dev>',
+                    from: 'School Appointments <onboarding@resend.dev>',
                     to: 'shahaanikhlas06@gmail.com',
                     subject: 'New Appointment Request',
                     html: `
@@ -102,16 +112,17 @@
                 });
 
                 if (error) {
-                    console.error('Error:', error);
-                    alert('Error submitting form. Please try again.');
-                } else {
-                    alert('Request submitted successfully!');
-                    document.getElementById('appointmentForm').reset();
-                    toggleTeacherField();
+                    errorMessage.textContent = `Error: ${error.message}`;
+                    errorMessage.style.display = 'block';
+                    return;
                 }
+
+                alert('Appointment request submitted successfully!');
+                document.getElementById('appointmentForm').reset();
+                document.getElementById('teacherField').style.display = 'none';
             } catch (err) {
-                console.error('Error:', err);
-                alert('Error submitting form. Please try again.');
+                errorMessage.textContent = `Error submitting form: ${err.message}`;
+                errorMessage.style.display = 'block';
             }
         });
     </script>
