@@ -3,61 +3,119 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Appointment Form</title>
-  <link rel="stylesheet" href="styles.css" />
+  <title>School Appointment Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+    }
+    form {
+      max-width: 500px;
+      margin: auto;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+    }
+    #teacherField {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>School Appointment Form</h1>
-    <form id="appointment-form">
-      <input type="text" name="name" placeholder="Your Name" required />
-      <input type="tel" name="phone" placeholder="Phone Number" required />
-      <input type="email" name="email" placeholder="Email Address" required />
 
-      <label for="meet">Whom do you want to meet?</label>
-      <select name="meet" id="meet" required>
-        <option value="">-- Select --</option>
-        <option value="Principal">Principal</option>
-        <option value="Vice-Principal">Vice-Principal</option>
-        <option value="Supervisor (KG)">Supervisor (KG)</option>
-        <option value="Supervisor (1-2)">Supervisor (1-2)</option>
-        <option value="Supervisor (3-5)">Supervisor (3-5)</option>
-        <option value="Supervisor (6-8)">Supervisor (6-8)</option>
-        <option value="Supervisor (9-12)">Supervisor (9-12)</option>
-        <option value="Admissions Department">Admissions Department</option>
-        <option value="Teacher">Teacher</option>
-      </select>
+  <h2>School Appointment Form</h2>
+  <form id="appointmentForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required>
 
-      <input type="text" name="teacher" id="teacher-field" placeholder="Which teacher?" style="display:none;" />
+    <label for="phone">Phone Number:</label>
+    <input type="tel" id="phone" required>
 
-      <button type="submit">Submit</button>
-    </form>
-    <p id="status"></p>
-  </div>
+    <label for="email">Email:</label>
+    <input type="email" id="email" required>
+
+    <label for="meet">Whom do you want to meet?</label>
+    <select id="meet" required>
+      <option value="">-- Select --</option>
+      <option value="Principal">Principal</option>
+      <option value="Vice-Principal">Vice-Principal</option>
+      <option value="Supervisors (KG)">Supervisors (KG)</option>
+      <option value="Supervisors (1-2)">Supervisors (1-2)</option>
+      <option value="Supervisors (3-5)">Supervisors (3-5)</option>
+      <option value="Supervisors (6-8)">Supervisors (6-8)</option>
+      <option value="Supervisors (9-12)">Supervisors (9-12)</option>
+      <option value="Admissions Department">Admissions Department</option>
+      <option value="Teacher">Teacher</option>
+    </select>
+
+    <div id="teacherField">
+      <label for="teacher">Which Teacher?</label>
+      <input type="text" id="teacher">
+    </div>
+
+    <button type="submit">Submit</button>
+  </form>
 
   <script>
-    const form = document.getElementById('appointment-form');
-    const meetField = document.getElementById('meet');
-    const teacherField = document.getElementById('teacher-field');
-    const statusMsg = document.getElementById('status');
+    const meet = document.getElementById('meet');
+    const teacherField = document.getElementById('teacherField');
 
-    meetField.addEventListener('change', () => {
-      teacherField.style.display = meetField.value === 'Teacher' ? 'block' : 'none';
+    meet.addEventListener('change', () => {
+      if (meet.value === 'Teacher') {
+        teacherField.style.display = 'block';
+        document.getElementById('teacher').required = true;
+      } else {
+        teacherField.style.display = 'none';
+        document.getElementById('teacher').required = false;
+      }
     });
 
-    form.addEventListener('submit', async (e) => {
+    document.getElementById('appointmentForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
 
-      const response = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const email = document.getElementById('email').value;
+      const meetValue = document.getElementById('meet').value;
+      const teacher = document.getElementById('teacher').value;
 
-      const result = await response.json();
-      statusMsg.textContent = result.message;
+      const payload = {
+        name,
+        phone,
+        email,
+        meet: meetValue,
+        teacher: meetValue === 'Teacher' ? teacher : ''
+      };
+
+      try {
+        const res = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        console.log('Response from server:', data);
+
+        if (data.success) {
+          alert("Appointment submitted successfully!");
+        } else {
+          alert("Something went wrong. Check the console.");
+        }
+      } catch (error) {
+        console.error('Error sending email:', error);
+        alert("Failed to send appointment. Please try again.");
+      }
     });
   </script>
 </body>
