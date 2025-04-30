@@ -217,6 +217,18 @@
   </div>
 
   <script>
+    // Show/hide teacher name field based on selection
+document.getElementById('who-to-meet').addEventListener('change', function () {
+  const teacherGroup = document.getElementById('teacher-name-group');
+  if (this.value === 'Teacher') {
+    teacherGroup.style.display = 'block';
+    document.getElementById('teacher-name').setAttribute('required', 'required');
+  } else {
+    teacherGroup.style.display = 'none';
+    document.getElementById('teacher-name').removeAttribute('required');
+  }
+});
+
     document.getElementById('appointment-form').addEventListener('submit', async function (e) {
       e.preventDefault();
 
