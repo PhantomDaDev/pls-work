@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY); // Set your Resend API Key in .env
 
 router.post('/send-emails', async (req, res) => {
   const {
@@ -19,20 +21,7 @@ router.post('/send-emails', async (req, res) => {
     personToMeet = `Teacher: ${teacher_name}`;
   }
 
-  // Configure your transporter
-  const transporter = nodemailer.createTransport({
-    service: 'gmail', // or any other email service you're using
-    auth: {
-      user: 'your-email@example.com',
-      pass: 'your-app-password'
-    }
-  });
-
-  const mailOptions = {
-    from: email,
-    to: 'school-admin@example.com', // school email address
-    subject: `New Appointment Request - ${name}`,
-    text: `
+  const emailBody = `
 Name: ${name}
 Email: ${email}
 Phone: ${phone}
@@ -40,15 +29,20 @@ Date: ${date}
 Person to Meet: ${personToMeet}
 Reason:
 ${message}
-    `
-  };
+  `;
 
   try {
-    await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'Email sent successfully' });
+    const data = await resend.emails.send({
+      from: 'appointments@your-domain.com', // Must be a verified domain in Resend
+      to: 'school-admin@example.com',
+      subject: `New Appointment Request - ${name}`,
+      text: emailBody
+    });
+
+    res.status(200).json({ message: 'Email sent successfully', data });
   } catch (error) {
     console.error('Email sending failed:', error);
-    res.status(500).json({ error: 'Failed to send email' });
+    res.status(500).json({ error: 'Failed to send email', details: error.message });
   }
 });
 
