@@ -13,7 +13,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'shahaanikhlas06@gmail.com', // Or your verified domain
+        from: 'onboarding@resend.dev', // Or your verified domain
         to: 'shahaanikhlas06@gmail.com',
         subject: 'New School Appointment',
         html: `
