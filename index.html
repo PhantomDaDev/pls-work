@@ -171,7 +171,6 @@
           id="phone"
           name="phone"
           pattern="[0-9]{10}"
-          placeholder="e.g. +971 00 0000 000"
           required
         />
       </div>
@@ -227,7 +226,7 @@
       const date = document.getElementById('date').value;
       const message = document.getElementById('reason').value.trim();
 
-      const response = await fetch('/api/send-email', {
+      const response = await fetch('/api/send-emails', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
