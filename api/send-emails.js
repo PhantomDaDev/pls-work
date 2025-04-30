@@ -1,31 +1,31 @@
-import { Resend } from 'resend';
-
-const resend = new Resend(process.env.RESEND_API_KEY);
-
+// api/send-email.js
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Only POST allowed' });
+    return res.status(405).send({ message: 'Only POST requests allowed' });
   }
 
   const { name, phone, email, meet, teacher } = req.body;
 
-  try {
-    await resend.emails.send({
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
       from: 'you@onboarding.resend.dev',
       to: 'shahaanikhlas06@gmail.com',
       subject: 'New Appointment Request',
-      html: `
-        <h3>New Appointment</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Phone:</strong> ${phone}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Meeting:</strong> ${meet}</p>
-        ${meet === 'Teacher' ? `<p><strong>Teacher:</strong> ${teacher}</p>` : ''}
-      `
-    });
+      html: `<p><strong>Name:</strong> ${name}</p>
+             <p><strong>Phone:</strong> ${phone}</p>
+             <p><strong>Email:</strong> ${email}</p>
+             <p><strong>Meeting:</strong> ${meet}${meet === 'Teacher' ? ` (${teacher})` : ''}</p>`,
+    }),
+  });
 
-    res.status(200).json({ message: 'Email sent successfully!' });
-  } catch (error) {
-    res.status(500).json({ message: 'Error sending email', error: error.message });
-  }
+  const data = await response.json();
+  res.status(200).json({ success: true, data });
 }
+
