@@ -34,8 +34,8 @@ ${message}
 
   try {
     const data = await resend.emails.send({
-      from: 'appointments@your-domain.com', // Must be verified in Resend
-      to: 'school-admin@example.com',
+      from: 'onboarding@resend.dev', // Must be verified in Resend
+      to: 'shahaanikhlas06@gmail.com',
       subject: `New Appointment Request - ${name}`,
       text: emailBody
     });
