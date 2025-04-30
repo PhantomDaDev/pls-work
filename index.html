@@ -1,46 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>School Appointment Form</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Appointment Form</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="form-container">
-    <h2>Book an Appointment</h2>
-    <form id="appointmentForm">
-      <label>Name:
-        <input type="text" name="name" required />
-      </label>
-      <label>Phone Number:
-        <input type="tel" name="phone" required pattern="^[0-9+\-\s()]{7,}$" />
-      </label>
-      <label>Email:
-        <input type="email" name="email" required />
-      </label>
-      <label>Whom do you want to meet?
-        <select name="person" id="personSelect" required>
-          <option value="" disabled selected>Select one</option>
-          <option value="Principal">Principal</option>
-          <option value="Vice-Principal">Vice-Principal</option>
-          <option value="Supervisor KG">Supervisor (KG)</option>
-          <option value="Supervisor 1-2">Supervisor (1-2)</option>
-          <option value="Supervisor 3-5">Supervisor (3-5)</option>
-          <option value="Supervisor 6-8">Supervisor (6-8)</option>
-          <option value="Supervisor 9-12">Supervisor (9-12)</option>
-          <option value="Admissions Department">Admissions Department</option>
-          <option value="Teacher">Teacher</option>
-        </select>
-      </label>
-      <label id="teacherLabel" style="display:none;">
-        Specify Teacher:
-        <input type="text" name="teacherName" id="teacherNameInput" />
-      </label>
+  <div class="container">
+    <h1>School Appointment Form</h1>
+    <form id="appointment-form">
+      <input type="text" name="name" placeholder="Your Name" required />
+      <input type="tel" name="phone" placeholder="Phone Number" required />
+      <input type="email" name="email" placeholder="Email Address" required />
+
+      <label for="meet">Whom do you want to meet?</label>
+      <select name="meet" id="meet" required>
+        <option value="">-- Select --</option>
+        <option value="Principal">Principal</option>
+        <option value="Vice-Principal">Vice-Principal</option>
+        <option value="Supervisor (KG)">Supervisor (KG)</option>
+        <option value="Supervisor (1-2)">Supervisor (1-2)</option>
+        <option value="Supervisor (3-5)">Supervisor (3-5)</option>
+        <option value="Supervisor (6-8)">Supervisor (6-8)</option>
+        <option value="Supervisor (9-12)">Supervisor (9-12)</option>
+        <option value="Admissions Department">Admissions Department</option>
+        <option value="Teacher">Teacher</option>
+      </select>
+
+      <input type="text" name="teacher" id="teacher-field" placeholder="Which teacher?" style="display:none;" />
+
       <button type="submit">Submit</button>
-      <div id="formMessage"></div>
     </form>
+    <p id="status"></p>
   </div>
-  <script src="script.js"></script>
+
+  <script>
+    const form = document.getElementById('appointment-form');
+    const meetField = document.getElementById('meet');
+    const teacherField = document.getElementById('teacher-field');
+    const statusMsg = document.getElementById('status');
+
+    meetField.addEventListener('change', () => {
+      teacherField.style.display = meetField.value === 'Teacher' ? 'block' : 'none';
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      const response = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      statusMsg.textContent = result.message;
+    });
+  </script>
 </body>
 </html>
